@@ -1,2 +1,4 @@
 sources/*
 data/*
+lib/*
+__pycache__

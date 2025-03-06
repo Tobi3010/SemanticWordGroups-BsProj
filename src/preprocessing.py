@@ -1,5 +1,3 @@
-import csv
-import nltk
 import string
 import pandas as pd
 import numpy as np
