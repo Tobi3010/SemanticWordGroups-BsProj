@@ -1,7 +1,10 @@
 from pyvis.network import Network
+import pandas as pd
 
 def word_network():
+    df = pd.read_csv('co_occurrence_matrix.csv')
     net = Network()
-    net.add_node(1, label="fire")
-    net.add_node(2, label="water")
+    print(df.columns[1:])
+    net.add_nodes(df.columns[1:])
     return net
+

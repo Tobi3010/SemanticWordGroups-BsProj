@@ -1,4 +1,5 @@
 import string
+import csv
 import pandas as pd
 import numpy as np
 from collections import defaultdict
@@ -6,6 +7,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.stem.porter import PorterStemmer
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
+from nltk import pos_tag
 import re
 
 stemmer = PorterStemmer()
@@ -41,6 +43,10 @@ def remove_stopwords(text, stop_words):
     filtered_text = [word for word in text if word not in stop_words]
     return filtered_text
 
+
+def is_meaningful(tag):
+    return tag.startswith("NN") or tag.startswith("VB") or tag.startswith("JJ")
+
 def stopwords_to_count(text, stop_words):
     n = len(text)
     j = 0
@@ -72,6 +78,7 @@ def preprocessing(text):
         sentences[i] = remove_uppercase(sentences[i])
         sentences[i] = remove_punctuation_numbers(sentences[i])
         sentences[i] = word_tokenize(sentences[i])
+        
         sentences[i] = stopwords_to_count(sentences[i], stop_words)
         sentences[i] = lemma_words(sentences[i])
     
@@ -106,7 +113,24 @@ def co_occurance(sentences, windowSize):
 
     return df
 
-
+"""
+def filter_words(text, stopwords):
+    tagged_text = pos_tag(text)
+    filtered_text = []
+    n = len(text)
+    j = 0
+    while j < n:
+        if text[j] not in stopwords:
+            filtered_text.append(text[j])
+            j += 1
+            continue
+        k = 0
+        while j+k < n and text[j] in stopwords:
+            k += 1
+        filtered_text.append(str(k))
+        j += k
+    return text
+"""
 # ------------------------------------------------------------------------------------------------------------
 
 
