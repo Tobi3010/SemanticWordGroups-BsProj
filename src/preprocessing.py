@@ -1,5 +1,4 @@
 import string
-import csv
 import pandas as pd
 import numpy as np
 from collections import defaultdict
@@ -7,21 +6,10 @@ from nltk.stem import WordNetLemmatizer
 from nltk.stem.porter import PorterStemmer
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
-from nltk import pos_tag
 import re
 
 stemmer = PorterStemmer()
 lemmatizer = WordNetLemmatizer()
-
-
-# Functions for data loading ----------------------------------------------------------------------------------
-def load_data(filename):
-    with open(filename, newline='', encoding='utf-8') as file:
-        data = csv.DictReader(file)  # Automatically uses first row as headers
-        lyrics_list = [row for row in data]  # Convert iterator to list of dictionaries
-
-    return lyrics_list
-
 
 
 # Functions for data preprocessing ----------------------------------------------------------------------------
@@ -70,15 +58,13 @@ def lemma_words(text):
     lemmas = [lemmatizer.lemmatize(word) for word in text]
     return lemmas
 
-def preprocessing(text):
-    stop_words = set(stopwords.words("english"))
+def preprocessing(text, stop_words):
     sentences = re.split(r'(?<=[.!?])\s+|\n', text)
     
     for i in range(len(sentences)):
         sentences[i] = remove_uppercase(sentences[i])
         sentences[i] = remove_punctuation_numbers(sentences[i])
         sentences[i] = word_tokenize(sentences[i])
-        
         sentences[i] = stopwords_to_count(sentences[i], stop_words)
         sentences[i] = lemma_words(sentences[i])
     
