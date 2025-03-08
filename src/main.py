@@ -6,18 +6,16 @@ import pandas as pd
 import numpy as np
 import time
 
-def co_occurance(sentences, windowSize):
-    vocab = set()
-    dic = defaultdict(int)
-
+def co_occurance(sentences, windowSize, vocab, dic):
     for s in sentences:                          
         for t1 in range(len(s)):                         # Loop all tokens in sentence
 
             if str.isdigit(s[t1]): continue              # If token is digit, ignore
             vocab.add(s[t1])                             # If not in set, add token to set, 
 
-            for t2 in range(t1, t1 + windowSize):        # Loop tokens within window size
-                if t2 >= len(s): break            
+            for t2 in range(t1+1, t1 + 1 + windowSize):        # Loop tokens within window size
+                if t2 >= len(s): break 
+                if s[t2] == s[t1]: continue    
                 if str.isdigit(s[t2]):                   # Digit represents stop words between two meaningful words, so skip
                     t2 += int(s[t2])                     # Skipping 
                     continue
@@ -26,6 +24,7 @@ def co_occurance(sentences, windowSize):
                 
     sorted(vocab)                                        # sort vocab
     return vocab, dic
+
 
 def make_coo_matrix(vocab, dic):
     df = pd.DataFrame(data=np.zeros((len(vocab), len(vocab)), dtype=np.int16),
@@ -40,17 +39,21 @@ def make_coo_matrix(vocab, dic):
 def program():
     stopwords = load_stopwords("data/stop_words_english.txt")
     data_chunks = load_data("data/lyrics/lyrics.csv")
+    vocab = set()
+    dic = defaultdict(int)
 
     for idx, chunk in enumerate(data_chunks):
         if idx == 0:
             df_chunks = pd.DataFrame(chunk)
-            text = df_chunks.values.tolist()[0][0]
-            sentences = preprocessing(text, stopwords)
-            vocab, dic = co_occurance(sentences, 10)
+            for row in df_chunks.values.tolist():
+                text = row[0]
+                sentences = preprocessing(text, stopwords)
+                vocab, dic = co_occurance(sentences, 5, vocab, dic)
         else:
             break
       
     df = make_coo_matrix(vocab, dic)
+    print(df)
     df.to_csv("co_occurrence_matrix.csv", index=True)
     word_network()
     

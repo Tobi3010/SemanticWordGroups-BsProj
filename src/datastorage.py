@@ -1,9 +1,6 @@
 from scipy.sparse import load_npz
 from scipy.sparse import save_npz
 import pandas as pd
-import time
-import re
-
 
 
 def load_stopwords(filename):
@@ -15,7 +12,7 @@ def load_data(filename):
         filename, 
         encoding='utf-8', 
         usecols=["lyrics"],
-        chunksize=10
+        chunksize=15
         )
     return chunks
 
