@@ -1,14 +1,9 @@
 import string
-import pandas as pd
 import numpy as np
-from collections import defaultdict
 from nltk.stem import WordNetLemmatizer
-from nltk.stem.porter import PorterStemmer
 from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
 import re
 
-stemmer = PorterStemmer()
 lemmatizer = WordNetLemmatizer()
 
 
@@ -31,9 +26,9 @@ def remove_stopwords(text, stop_words):
     filtered_text = [word for word in text if word not in stop_words]
     return filtered_text
 
-
-def is_meaningful(tag):
-    return tag.startswith("NN") or tag.startswith("VB") or tag.startswith("JJ")
+def lemma_words(text):
+    lemmas = [lemmatizer.lemmatize(word) for word in text]
+    return lemmas
 
 def stopwords_to_count(text, stop_words):
     n = len(text)
@@ -49,15 +44,6 @@ def stopwords_to_count(text, stop_words):
         n = n - k + 1
     return text
 
-
-def stem_words(text):
-    stems = [stemmer.stem(word) for word in text]
-    return stems
-
-def lemma_words(text):
-    lemmas = [lemmatizer.lemmatize(word) for word in text]
-    return lemmas
-
 def preprocessing(text, stop_words):
     sentences = re.split(r'(?<=[.!?])\s+|\n', text)
     
@@ -71,53 +57,8 @@ def preprocessing(text, stop_words):
     return sentences
 
 
-def co_occurance(sentences, windowSize):
-    vocab = set()
-    d = defaultdict(int)
 
-    for sentence in sentences:
-        for i in range(len(sentence)):
-            if str.isdigit(sentence[i]): continue
 
-            vocab.add(sentence[i])  
-            for j in range(i, i+windowSize):
-                if j >= len(sentence): break
-                if str.isdigit(sentence[j]):
-                    j += int(sentence[j])
-                    continue
-                key = tuple( sorted([sentence[j], sentence[i]]) )
-                d[key] += 1
-                
-    vocab = sorted(vocab) # sort vocab
-
-    df = pd.DataFrame(data=np.zeros((len(vocab), len(vocab)), dtype=np.int16),
-                      index=vocab,
-                      columns=vocab)
-    for key, value in d.items():
-        df.at[key[0], key[1]] = value
-        df.at[key[1], key[0]] = value
-
-    return df
-
-"""
-def filter_words(text, stopwords):
-    tagged_text = pos_tag(text)
-    filtered_text = []
-    n = len(text)
-    j = 0
-    while j < n:
-        if text[j] not in stopwords:
-            filtered_text.append(text[j])
-            j += 1
-            continue
-        k = 0
-        while j+k < n and text[j] in stopwords:
-            k += 1
-        filtered_text.append(str(k))
-        j += k
-    return text
-"""
-# ------------------------------------------------------------------------------------------------------------
 
 
 
