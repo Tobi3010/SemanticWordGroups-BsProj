@@ -2,6 +2,7 @@ import string
 import numpy as np
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
+from nltk.corpus import words
 import re
 
 lemmatizer = WordNetLemmatizer()
@@ -24,6 +25,11 @@ def remove_punctuation_numbers(text):
 
 def remove_stopwords(text, stop_words):
     filtered_text = [word for word in text if word not in stop_words]
+    return filtered_text
+
+def only_english(text):
+    english_words = set(words.words())  # Convert list to set for faster lookup
+    filtered_text = [word for word in text if word.lower() in english_words]
     return filtered_text
 
 def lemma_words(text):
