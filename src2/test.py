@@ -4,7 +4,7 @@ from sentence_transformers import SentenceTransformer, util
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from scipy.spatial.distance import cosine
 from scipy.stats import spearmanr
-from datastorage2 import load_wordsim
+from data_handling import load_standard
 
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -86,11 +86,19 @@ def test_T5_model(model, tokenizer, standard):
 
 
 
-standards = {
-    "Wordsim-353 Relatedness Gold Standard": load_wordsim("data/test/wordsim_relatedness_goldstandard.txt"),
-    "Wordsim-363 Similarity Gold Standard": load_wordsim("data/test/wordsim_similarity_goldstandard.txt")
+relatedness_standards = {
+    "Wordsim-353-Relatedness"   : load_standard("data/relatedness/wordsim_relatedness_goldstandard.txt"),
+    "EN-MTurk-287"              : load_standard("data/relatedness/EN-MTurk-287.txt"),
+    "EN-MTurk-771"              : load_standard("data/relatedness/EN-MTurk-771.txt"),
+    "MEN"                       : load_standard("data/relatedness/MEN_dataset_natural_form_full.txt")
 }
 
+similarity_standards = {
+    "Wordsim-363-Similarity"    : load_standard("data/similarity/wordsim_similarity_goldstandard.txt"),
+    "SimLex-999"                : load_standard("data/similarity/SimLex-999.txt"),
+    "SimVerb-3500"              : load_standard("data/similarity/SimVerb-3500.txt")
+}
+"""
 # Stastical Models -----------------------------------------------------------------------------------
 
 print("\nEVALUATE STATIC MODELS")
@@ -135,7 +143,7 @@ for standard_name, standard in standards.items():
 
 
 # T5 Model ------------------------------------------------------------------------------------------
-"""
+
 print("Testing T5 Models")
 T5_model_name = "google/flan-t5-large"
 T5_tokenizer = AutoTokenizer.from_pretrained(T5_model_name)
