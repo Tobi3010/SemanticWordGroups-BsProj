@@ -21,4 +21,4 @@ def word_network():
   
     net.write_html("word_network.html")
 
-word_network()
+#word_network()

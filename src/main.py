@@ -28,22 +28,24 @@ def co_occurance(sentences, windowSize, vocab, dic):
 
 
 def pmi(vocab, dic):
-    total = sum(vocab.values())  # Sum the total frequency
+    total = sum(vocab.values())                             # Sum the words
     for key in dic:
-        # Compute PMI and update the value in dic
-        dic[key] = np.max(np.log2(dic[key]/total / ((vocab[key[0]] / total) * (vocab[key[1]] / total))), 0)
+        Pxy = dic[key]/total                                # Probability of x and y occurring
+        Px = (vocab[key[0]] / total)                        # Probability of x occurring
+        Py = (vocab[key[1]] / total)                        # Probability of y occurring
+        dic[key] = np.max(np.log2(Pxy / (Px*Py)), 0)        # PPMI calculation
     
     return vocab, dic
 
 
 def make_co_matrix(vocab, dic):
-    vocab_list = list(vocab.keys())  # Ensure only top 500 words are used
+    vocab_list = list(vocab.keys()) 
     df = pd.DataFrame(data=np.zeros((len(vocab_list), len(vocab_list)), dtype=np.float64),
                       index=vocab_list,
                       columns=vocab_list)
     
     for key, value in dic.items():
-        if key[0] in vocab_list and key[1] in vocab_list:  # Extra safety check
+        if key[0] in vocab_list and key[1] in vocab_list: 
             df.at[key[0], key[1]] = value
             df.at[key[1], key[0]] = value
 
@@ -59,7 +61,7 @@ def program():
     os.chdir("data/books/SFGram-dataset")
     for file in os.listdir():
         print(f"Processing book : {file}")
-        if (file == "book00005.txt" or file == "book00017.txt") : continue
+        if (file == "book00005.txt" or file == "book00017.txt" or file == "book00012.txt") : continue
         if (file == "book00026.txt"): break
         data_chunks = load_book_data(f"{file}")
         for idx, chunk in enumerate(data_chunks):
@@ -67,7 +69,7 @@ def program():
             for row in df_chunks.values.tolist():
                 text = row[0]
                 sentences = preprocessing(text, stopwords)
-                vocab, dic = co_occurance(sentences, 3, vocab, dic)
+                vocab, dic = co_occurance(sentences, 5, vocab, dic)
     os.chdir("../../../")
     
     print("Sorting data")
@@ -116,4 +118,4 @@ def test_pmi():
     print(f"Computed PMI(foo, bar): {computed_pmi:.6f}")
     assert np.isclose(computed_pmi, expected_pmi, atol=1e-5), "PMI calculation is incorrect!"
 
-    print("PMI test passed! ✅")
+    print("PMI test passed!")
