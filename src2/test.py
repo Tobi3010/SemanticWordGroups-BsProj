@@ -84,53 +84,74 @@ def test_T5_model(model, tokenizer, standard):
     return spearman
 
 
+# EVALUATION ------------------------------------------------------------------------------------------------------
 
-
+# Load list of relatedness golden standards
 relatedness_standards = {
     "Wordsim-353-Relatedness"   : load_standard("data/relatedness/wordsim_relatedness_goldstandard.txt"),
     "EN-MTurk-287"              : load_standard("data/relatedness/EN-MTurk-287.txt"),
     "EN-MTurk-771"              : load_standard("data/relatedness/EN-MTurk-771.txt"),
     "MEN"                       : load_standard("data/relatedness/MEN_dataset_natural_form_full.txt")
 }
-
+# Load list of similarity golden standards
 similarity_standards = {
     "Wordsim-363-Similarity"    : load_standard("data/similarity/wordsim_similarity_goldstandard.txt"),
     "SimLex-999"                : load_standard("data/similarity/SimLex-999.txt"),
     "SimVerb-3500"              : load_standard("data/similarity/SimVerb-3500.txt")
 }
-"""
-# Stastical Models -----------------------------------------------------------------------------------
 
-print("\nEVALUATE STATIC MODELS")
-
+# Load list of statistical models
 static_models = {
-    "Word2Vec": api.load("word2vec-google-news-300"),
-    "GloVe": api.load("glove-wiki-gigaword-300"),
-    "FastText": api.load("fasttext-wiki-news-subwords-300")
+    "Word2Vec"  : api.load("word2vec-google-news-300"),
+    "GloVe"     : api.load("glove-wiki-gigaword-300"),
+    "FastText"  : api.load("fasttext-wiki-news-subwords-300")
+}
+# Load list of neural models
+neural_models = {
+    "MPNet"      : SentenceTransformer("all-mpnet-base-v2"),
+    "T5"         : SentenceTransformer("sentence-transformers/sentence-t5-large"),
+    "Roberta"    : SentenceTransformer("all-roberta-large-v1")
 }
 
-for standard_name, standard in standards.items():
-    print(f"\tEvaluating {standard_name}")
+# Stastical Models -----------------------------------------------------------------------------------
+
+print("\nEVALUATE statistical MODELS")
+
+print("\tStatistical Models on Relatedness standards")
+for standard_name, standard in relatedness_standards.items():
+    print(f"\t\tEvaluating {standard_name}")
     for model_name, model in static_models.items():   
         spearman = test_static_model(model, standard)
-        print(f"\t\t{model_name} Spearman Correlation: {spearman:.4f}")
+        print(f"\t\t\t{model_name} Spearman Correlation: {spearman:.4f}")
+        
+print("\n\tStatistical Models on Similarity Standards")
+for standard_name, standard in similarity_standards.items():
+    print(f"\t\tEvaluating {standard_name}")
+    for model_name, model in static_models.items():   
+        spearman = test_static_model(model, standard)
+        print(f"\t\t\t{model_name} Spearman Correlation: {spearman:.4f}")
 
 
 # Neural Models -------------------------------------------------------------------------------------
 
 print("\nEVALUATE NEURAL MODELS")
 
-neural_models = {
-    "BERT": SentenceTransformer("all-mpnet-base-v2"),
-    "T5": SentenceTransformer("sentence-transformers/sentence-t5-large")
-}
-
-for standard_name, standard in standards.items():
-    print(f"\tEvaluating {standard_name}")
+print("\tNeural Models on Relatedness standards")
+for standard_name, standard in relatedness_standards.items():
+    print(f"\t\tEvaluating {standard_name}")
     for model_name, model in neural_models.items():   
         spearman = test_neural_model(model, standard)
-        print(f"\t\t{model_name} Spearman Correlation: {spearman:.4f}")
+        print(f"\t\t\t{model_name} Spearman Correlation: {spearman:.4f}")
 
+print("\n\tNeural Models on Similarity standards")
+for standard_name, standard in similarity_standards.items():
+    print(f"\t\tEvaluating {standard_name}")
+    for model_name, model in neural_models.items():   
+        spearman = test_neural_model(model, standard)
+        print(f"\t\t\t{model_name} Spearman Correlation: {spearman:.4f}")
+
+
+"""
 # Essemble method -------------------------------------------------------------------------------------
 print("\nEVALUATE ESSEMBLE METHOD")
 
@@ -138,12 +159,14 @@ for standard_name, standard in standards.items():
     print(f"\t Evaluating {standard_name}")
     spearman = test_essemble_method(neural_models["BERT"], neural_models["T5"], standard)
     print(f"\t\tEssemble method, using BERT and FastTet, Spearman Correlation: {spearman:.4f}")
-    
+"""
+
+
 
 
 
 # T5 Model ------------------------------------------------------------------------------------------
-
+"""
 print("Testing T5 Models")
 T5_model_name = "google/flan-t5-large"
 T5_tokenizer = AutoTokenizer.from_pretrained(T5_model_name)
@@ -152,6 +175,17 @@ T5_model = AutoModelForSeq2SeqLM.from_pretrained(T5_model_name)
 print("Evaluating T5-style model on WordSim-353 (Relatedness)...")
 spearman = test_T5_model(T5_model, T5_tokenizer, wordsim_relatedness)
 print(f"T5-Style Spearman Correlation: {spearman:.4f}")
+
+model = SentenceTransformer("all-roberta-large-v1")
+for standard_name, standard in relatedness_standards.items():
+    print(f"\tEvaluating {standard_name}")
+    spearman = test_neural_model(model, standard)
+    print(f"\t\tRoberta Spearman Correlation: {spearman:.4f}")
+
+for standard_name, standard in similarity_standards.items():
+    print(f"\tEvaluating {standard_name}")
+    spearman = test_neural_model(model, standard)
+    print(f"\t\tRoberta Spearman Correlation: {spearman:.4f}")
 """
 
 
