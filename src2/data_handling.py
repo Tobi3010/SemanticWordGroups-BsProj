@@ -33,7 +33,7 @@ def load_standard(filename):
                 continue
             w1, w2, scr = parts
             key = tuple(sorted([w1, w2]))   
-            dic[key] = scr
+            dic[key] = float(scr)
     return dic
 
         
