@@ -1,3 +1,4 @@
+import random
 
 
 # For cleaning data to only nessecary info. 
@@ -20,6 +21,25 @@ def data_clean(filename, wrd1_idx, wrd2_idx, scr_idx):
     with open(filename, 'w') as f:
         f.writelines(new_lines)
 
+def split_data(filename):
+    with open(filename, "r", encoding='utf-8') as f:
+        lines = f.read().splitlines()
+        random.shuffle(lines)
+
+        split = int(0.8 * len(lines))
+        train_data = lines[:split]
+        test_data = lines[split:]
+    
+    train_file = filename[:-4] + "_train.txt"
+    print(train_file)
+    with open(train_file, 'w', encoding='utf-8') as f:
+        for line in train_data:
+            f.write(line + '\n')
+    
+    test_file = filename[:-4] + "_test.txt"
+    with open(test_file, 'w', encoding='utf-8') as f:
+        for line in test_data:
+            f.write(line + '\n')
 
 # For Loading Golden Standard Datasets
 def load_standard(filename):
@@ -35,16 +55,10 @@ def load_standard(filename):
             key = tuple(sorted([w1, w2]))   
             dic[key] = float(scr)
     return dic
-
         
 def load_stopwords(filename):
     with open(filename, "r", encoding='utf-8') as f:    
         return f.read().splitlines()
+    
 
 
-"""
-data_clean("data/relatedness/MEN_dataset_natural_form_full.txt", 0, 1, 2)
-dic = load_standard("data/relatedness/MEN_dataset_natural_form_full.txt")
-for (w1, w2), src in dic.items():
-    print(f"{w1}\t{w2}\t{src}")
-"""

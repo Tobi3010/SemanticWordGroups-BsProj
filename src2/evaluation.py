@@ -86,19 +86,7 @@ def test_T5_model(model, tokenizer, standard):
 
 # EVALUATION STANDARDS -----------------------------------------------------------------------------------------
 
-# Load list of relatedness golden standards
-relatedness_standards = {
-    "Wordsim-353-Relatedness"   : load_standard("data/relatedness/wordsim_relatedness_goldstandard.txt"),
-    "EN-MTurk-287"              : load_standard("data/relatedness/EN-MTurk-287.txt"),
-    "EN-MTurk-771"              : load_standard("data/relatedness/EN-MTurk-771.txt"),
-    "MEN"                       : load_standard("data/relatedness/MEN_dataset_natural_form_full.txt")
-}
-# Load list of similarity golden standards
-similarity_standards = {
-    "Wordsim-363-Similarity"    : load_standard("data/similarity/wordsim_similarity_goldstandard.txt"),
-    "SimLex-999"                : load_standard("data/similarity/SimLex-999.txt"),
-    "SimVerb-3500"              : load_standard("data/similarity/SimVerb-3500.txt")
-}
+
 
 
 # Evaluates Stastical Models -----------------------------------------------------------------------------------
@@ -149,11 +137,8 @@ def eval_neural():
             print(f"\t\t\t{model_name} Spearman Correlation: {spearman:.4f}")
 
 # Evaluates Fine Tuned Models --------------------------------------------------------------------------------
-def eval_fine_tuned():
-    models = {
-        #"MPNet-tuned-on-MEN"      : SentenceTransformer("data/models/fine-tuned_mpnet"),
-        "MPNet-tuned-on-Wordsim"  : SentenceTransformer("data/models/mpnet_tuned_on_wordsim_rel")
-    }
+def eval_fine_tuned(modesl):
+    
 
     print("\nEVALUATE FINE TUNED MODELS")
     print("\tFine Tuned Models on Relatedness standards")
@@ -173,8 +158,43 @@ def eval_fine_tuned():
 
 #eval_stastistical()
 #eval_neural()
-print("hej")
-eval_fine_tuned()
+
+# Load list of relatedness golden standards
+relatedness_standards = {
+    "Wordsim-353-Relatedness"   : load_standard("data/relatedness/WordSim353-REL/full.txt"),
+    "EN-MTurk-287"              : load_standard("data/relatedness/EN-MTurk-287/full.txt"),
+    "EN-MTurk-771"              : load_standard("data/relatedness/EN-MTurk-771/full.txt"),
+    "MEN"                       : load_standard("data/relatedness/MEN/full.txt")
+}
+# Load list of similarity golden standards
+similarity_standards = {
+    "Wordsim-363-Similarity"    : load_standard("data/similarity/WordSim353-SIM/full.txt"),
+    "SimLex-999"                : load_standard("data/similarity/SimLex-999/full.txt"),
+    "SimVerb-3500(20%)"              : load_standard("data/similarity/SimVerb-3500/test.txt")
+}
+
+models = {
+        "SimVerb-3500-t-T5"  : SentenceTransformer("data/models/SimVerb-3500-t-T5")
+    }
+
+eval_fine_tuned(models)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 """
