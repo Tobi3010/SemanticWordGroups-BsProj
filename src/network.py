@@ -21,4 +21,7 @@ def word_network():
   
     net.write_html("word_network.html")
 
+net = Network(width="1000px", height="700px", bgcolor='#222222', font_color='white')
+net.from_nx(G)
+net.write_html("word_network.html")
 #word_network()

@@ -164,17 +164,17 @@ relatedness_standards = {
     "Wordsim-353-Relatedness"   : load_standard("data/relatedness/WordSim353-REL/full.txt"),
     "EN-MTurk-287"              : load_standard("data/relatedness/EN-MTurk-287/full.txt"),
     "EN-MTurk-771"              : load_standard("data/relatedness/EN-MTurk-771/full.txt"),
-    "MEN"                       : load_standard("data/relatedness/MEN/full.txt")
+    "MEN(20%)"                  : load_standard("data/relatedness/MEN/test.txt")
 }
 # Load list of similarity golden standards
 similarity_standards = {
     "Wordsim-363-Similarity"    : load_standard("data/similarity/WordSim353-SIM/full.txt"),
     "SimLex-999"                : load_standard("data/similarity/SimLex-999/full.txt"),
-    "SimVerb-3500(20%)"              : load_standard("data/similarity/SimVerb-3500/test.txt")
+    "SimVerb-3500"              : load_standard("data/similarity/SimVerb-3500/full.txt")
 }
 
 models = {
-        "SimVerb-3500-t-T5"  : SentenceTransformer("data/models/SimVerb-3500-t-T5")
+        "MEN-t-MPNet"  : SentenceTransformer("data/models/MEN-t-MPNet")
     }
 
 eval_fine_tuned(models)

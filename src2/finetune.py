@@ -7,6 +7,10 @@ from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import random
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}")
 
 
 
@@ -84,8 +88,8 @@ def evaluate(model, standard):
     pred_scr = []
     true_scr = []
     for (wrd1, wrd2), scr in standard.items():
-        emb1 = model.encode(wrd1, convert_to_tensor=True)
-        emb2 = model.encode(wrd2, convert_to_tensor=True)
+        emb1 = model.encode(wrd1, convert_to_tensor=True, device=device)
+        emb2 = model.encode(wrd2, convert_to_tensor=True, device=device)
         cos_sim = util.cos_sim(emb1, emb2).item() 
         pred_scr.append(cos_sim)
         true_scr.append(scr)
@@ -113,9 +117,9 @@ def prepare_train_data2(relative_pairs):
 
 
 # Path to semantic relatedness datasets
-REL_data_path = "data/similarity/"
+REL_data_path = "data/relatedness/"
 # Dataset names, and their highest possible score (used for normalization)
-REL_data = {"SimVerb-3500" : 10, "SimLex-999" : 10, "WordSim353-SIM" : 5}
+REL_data = {"MEN" : 50}
 # Load and normalize datasets for training
 REL_train = {data : normalize(
     (load_standard(REL_data_path + data + "/train.txt")), REL_data[data]) for data in REL_data.keys()} 
@@ -124,21 +128,27 @@ REL_test = {data : load_standard(REL_data_path + data + "/test.txt") for data in
 
 model_path = "data/models/"
 for train_name, train_data in REL_train.items():
-    model = SentenceTransformer("sentence-transformers/sentence-t5-large")
-    model_name = train_name + "-t-T5"
+    model = SentenceTransformer("all-mpnet-base-v2")
+    model_name = train_name + "-t-MPNet"
     output_path = model_path + model_name
     print(f"Fine tuning T5 on {train_name} : STARTS")
-    train_data = prepare_train_data(train_data)
-    fine_tune_model(model, train_data, output_path)
+    train_data = generate_relative_pairs(train_data)
+    split = round(len(train_data) * 0.01)
+    print(f"data len : {split}")
+    random.shuffle(train_data)
+    train_data = train_data[:split] 
+    train_data = prepare_train_data2(train_data)
+    fine_tune_model_rrl(model, train_data, output_path)
     print(f"Fine tuning T5 on {train_name} : ENDED")
     print(f"\nLOADING MODEL {model_name}")
     tuned_model =SentenceTransformer(output_path)
+    """
     print(f"EVALUATING OF {model_name} : STARTS")
     for test_name, test_data in REL_test.items():
         spearman = evaluate(tuned_model, test_data)
         print(f"\t{test_name} Spearman Correlation : {spearman:.4f}")
     print(f"EVALUATING OF {model_name} : ENDED\n")
-
+    """
 
 
 

@@ -1,4 +1,5 @@
 import random
+import pandas as pd
 
 
 # For cleaning data to only nessecary info. 
@@ -21,6 +22,7 @@ def data_clean(filename, wrd1_idx, wrd2_idx, scr_idx):
     with open(filename, 'w') as f:
         f.writelines(new_lines)
 
+# Function for splitting golden standard data, into training(80%) and test (20%)
 def split_data(filename):
     with open(filename, "r", encoding='utf-8') as f:
         lines = f.read().splitlines()
@@ -55,10 +57,41 @@ def load_standard(filename):
             key = tuple(sorted([w1, w2]))   
             dic[key] = float(scr)
     return dic
+
+# Function for loading words from categories
+
+
+
         
-def load_stopwords(filename):
+# Function for loading files with list of words, used for stop words, and top 10000 english words
+def load_words(filename):
     with open(filename, "r", encoding='utf-8') as f:    
         return f.read().splitlines()
+
+def get_categories_words(categories):
+    stop_words = load_words("data/stop_words_english.txt")  # Stop words to ignore
+    words = []
+
+    for category in categories:
+        words.extend(load_words(f"data/categories/{category}"))
     
+    filtered_words = [word for word in words if word not in stop_words]
+    return filtered_words
+
+def get_top_words():
+    top_words = load_words("data/google-10000-english.txt") # Top 10000 english words
+    stop_words = load_words("data/stop_words_english.txt")  # Stop words to ignore
+
+    # Filter stop words from top 10000 words
+    filtered_words = [word for word in top_words if word not in stop_words]
+    return filtered_words
+    
+
+def save_words_df(df):
+    df.to_csv("data/word_similarity.csv", index=False)
+
+def load_words_df():
+    return pd.read_csv("data/word_similarity.csv")
+
 
 
