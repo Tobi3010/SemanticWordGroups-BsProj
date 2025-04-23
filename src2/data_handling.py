@@ -74,6 +74,7 @@ def get_categories_words(categories):
 
     for category in categories:
         words.extend(load_words(f"data/categories/{category}"))
+        words.append(category.split("-")[0])
     
     filtered_words = [word for word in words if word not in stop_words]
     return filtered_words

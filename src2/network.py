@@ -59,7 +59,7 @@ def get_representative_nodes(G, communities):
 
 
 
-categories = ["animal-268.txt", "colors-89.txt", "emotions-136.txt"]
+categories = ["art-124.txt"]
 
 words = get_categories_words(categories)
 model = SentenceTransformer("data/models/MEN-t-MPNet")
