@@ -1,13 +1,10 @@
+dic = {"w1":"c1", "w2":"c2", "w3":"c1"}
 
-chars = {'A', 'B', 'C', 'D', 'E'}
-dic = dict((i,j) for i,j in enumerate(chars))
-print(dic)
-
-
-
-dic.setdefault(1, 'QQQQQ')
-print(dic)
-
-
-dic[1] = 'Q'
-print(dic)
+lst1 = [dic[i] for i in dic]
+lst2 = dic.values()
+lst3 = [i for i in dic.values()]
+print(lst1)
+print("\n")
+print(lst2)
+print("\n")
+print(lst3)

@@ -69,7 +69,7 @@ def fine_tune_model_rrl(model, train_data, output_path):
 
 
 # Function for fine tuning neural models from 'sentence_transformers'
-def fine_tune_model(model, train_data, output_path):
+def fine_tune_model_cossim(model, train_data, output_path):
     train_dataloader = DataLoader(train_data, shuffle=True, batch_size=16)
     train_loss = CosineSimilarityLoss(model)
 
@@ -81,6 +81,19 @@ def fine_tune_model(model, train_data, output_path):
         output_path=output_path
     )
     print(f"Model saved to {output_path}")
+
+def fine_tune_model_contra(model, train_data, output_path):
+    train_dataloader = DataLoader(train_data, shuffle=True, batch_size=16)
+    train_loss = losses.ContrastiveLoss(model=model)
+
+    model.fit(
+        train_objectives=[(train_dataloader, train_loss)],
+        epochs=3,
+        warmup_steps=10,
+        show_progress_bar=True,
+        output_path=output_path
+    )
+    print(f"Model fine-tuned with ContrastiveLoss and saved to {output_path}")
 
 
 # Function for evaluating neural models
@@ -117,9 +130,9 @@ def prepare_train_data2(relative_pairs):
 
 
 # Path to semantic relatedness datasets
-REL_data_path = "data/relatedness/"
+REL_data_path = "data/similarity/"
 # Dataset names, and their highest possible score (used for normalization)
-REL_data = {"MEN" : 50}
+REL_data = {"SimVerb-3500" : 10}
 # Load and normalize datasets for training
 REL_train = {data : normalize(
     (load_standard(REL_data_path + data + "/train.txt")), REL_data[data]) for data in REL_data.keys()} 
@@ -128,10 +141,11 @@ REL_test = {data : load_standard(REL_data_path + data + "/test.txt") for data in
 
 model_path = "data/models/"
 for train_name, train_data in REL_train.items():
-    model = SentenceTransformer("all-mpnet-base-v2")
-    model_name = train_name + "-t-MPNet"
+    model = SentenceTransformer("sentence-transformers/sentence-t5-large")
+    model_name = train_name + "-contra-t-T5"
     output_path = model_path + model_name
     print(f"Fine tuning T5 on {train_name} : STARTS")
+    """
     train_data = generate_relative_pairs(train_data)
     split = round(len(train_data) * 0.01)
     print(f"data len : {split}")
@@ -139,6 +153,9 @@ for train_name, train_data in REL_train.items():
     train_data = train_data[:split] 
     train_data = prepare_train_data2(train_data)
     fine_tune_model_rrl(model, train_data, output_path)
+    """
+    train_data = prepare_train_data(train_data)
+    fine_tune_model_contra(model, train_data, output_path)
     print(f"Fine tuning T5 on {train_name} : ENDED")
     print(f"\nLOADING MODEL {model_name}")
     tuned_model =SentenceTransformer(output_path)

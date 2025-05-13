@@ -1,3 +1,4 @@
+import os
 import random
 import pandas as pd
 
@@ -58,41 +59,78 @@ def load_standard(filename):
             dic[key] = float(scr)
     return dic
 
-# Function for loading words from categories
-
-
-
         
 # Function for loading files with list of words, used for stop words, and top 10000 english words
 def load_words(filename):
     with open(filename, "r", encoding='utf-8') as f:    
         return f.read().splitlines()
 
-def get_categories_words(categories):
-    stop_words = load_words("data/stop_words_english.txt")  # Stop words to ignore
+def get_categories_words(categories, amount=0):
+    stop_words = load_words("data/stop_words_english.txt")  # Stop words to ignorez
     words = []
 
     for category in categories:
-        words.extend(load_words(f"data/categories/{category}"))
+        if amount == 0:
+            words_to_add = load_words(f"data/categories/{category}")
+        else:
+            words_to_add = load_words(f"data/categories/{category}")
+            random.shuffle(words_to_add)
+            words_to_add = words_to_add[:amount]
+        words.extend(words_to_add)
         words.append(category.split("-")[0])
     
     filtered_words = [word for word in words if word not in stop_words]
     return filtered_words
 
-def get_top_words():
-    top_words = load_words("data/google-10000-english.txt") # Top 10000 english words
-    stop_words = load_words("data/stop_words_english.txt")  # Stop words to ignore
 
-    # Filter stop words from top 10000 words
-    filtered_words = [word for word in top_words if word not in stop_words]
-    return filtered_words
+def make_word_category_df(categories, include_category_word=True):
+    data = {}
+
+    for category, n_words in categories.items():
+        words_to_add = load_words(f"data/categories/{category}")
+        if n_words > 0:
+            random.shuffle(words_to_add)
+            words_to_add = words_to_add[:n_words]
+        category_word = category.split("-")[0]
+        
+        if include_category_word and category_word not in words_to_add:
+            words_to_add.append(category_word)
+        
+        data[category_word] = words_to_add
+
+    df = pd.DataFrame.from_dict(data, orient='index').transpose()
+    return df
+
+def save_words_category_df(categories, df):
+    # Convert wide format to long format: word, category
+    df_melted = df.melt(var_name="category", value_name="word").dropna()
+
+    # Format folder name
+    parts = []
+    for category, n_words in categories.items():
+        category_name = category.split("-")[0]
+        parts.append(f"{category_name}{n_words}")
+    name = "-".join(parts)
+    print(name)
+
+    # Create directory and save the melted DataFrame
+    directory_name = f"data/networks/{name}"
+    os.makedirs(directory_name, exist_ok=True)
+    df_melted[["word", "category"]].to_csv(f"{directory_name}/categories_words.csv", index=False)
     
+def load_df_category_words(name):
+    return pd.read_csv(f"data/networks/{name}/categories_words.csv")
 
-def save_words_df(df):
-    df.to_csv("data/word_similarity.csv", index=False)
+def load_df_words(name):
+    df = pd.read_csv(f"data/networks/{name}/categories_words.csv")
+    return df["word"].dropna().tolist()
 
-def load_words_df():
-    return pd.read_csv("data/word_similarity.csv")
+def save_df_cossim(df, name, model_name):
+    df.to_csv(f"data/networks/{name}/{model_name}.csv", index=False)
+
+def load_df_cossim(name, model_name):
+    return pd.read_csv(f"data/networks/{name}/{model_name}.csv")
+
 
 
 
