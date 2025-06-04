@@ -130,9 +130,9 @@ def prepare_train_data2(relative_pairs):
 
 
 # Path to semantic relatedness datasets
-REL_data_path = "data/similarity/"
+REL_data_path = "data/relatedness/"
 # Dataset names, and their highest possible score (used for normalization)
-REL_data = {"SimVerb-3500" : 10}
+REL_data = {"MEN" : 50}
 # Load and normalize datasets for training
 REL_train = {data : normalize(
     (load_standard(REL_data_path + data + "/train.txt")), REL_data[data]) for data in REL_data.keys()} 
@@ -141,10 +141,10 @@ REL_test = {data : load_standard(REL_data_path + data + "/test.txt") for data in
 
 model_path = "data/models/"
 for train_name, train_data in REL_train.items():
-    model = SentenceTransformer("sentence-transformers/sentence-t5-large")
-    model_name = train_name + "-contra-t-T5"
+    model = SentenceTransformer("data/models/SEMCAT-Triple-t-MPNet")
+    model_name = train_name + "-cossim-t"
     output_path = model_path + model_name
-    print(f"Fine tuning T5 on {train_name} : STARTS")
+    print(f"Fine tuning MPNet on {train_name} : STARTS")
     """
     train_data = generate_relative_pairs(train_data)
     split = round(len(train_data) * 0.01)
@@ -155,10 +155,9 @@ for train_name, train_data in REL_train.items():
     fine_tune_model_rrl(model, train_data, output_path)
     """
     train_data = prepare_train_data(train_data)
-    fine_tune_model_contra(model, train_data, output_path)
-    print(f"Fine tuning T5 on {train_name} : ENDED")
-    print(f"\nLOADING MODEL {model_name}")
-    tuned_model =SentenceTransformer(output_path)
+    fine_tune_model_cossim(model, train_data, output_path)
+    print(f"Fine tuning MPNet on {train_name} : ENDED")
+   
     """
     print(f"EVALUATING OF {model_name} : STARTS")
     for test_name, test_data in REL_test.items():

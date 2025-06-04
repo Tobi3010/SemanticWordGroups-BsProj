@@ -27,19 +27,37 @@ def test_static_model(model, standard):
     return spearman    
 
 
-def test_neural_model(model, standard):
-    wordsim_scr_lst = [] # wordsim-353 score list
-    cos_sim_lst = [] # cosine similarity score list
-    for (wrd1, wrd2), scr in standard.items():
-        # Get word embeddings
+def test_neural_model(model, standard, top_k=10):
+    wordsim_scr_lst = []  # Human similarity scores
+    cos_sim_lst = []      # Model cosine similarities
+    error_list = []       # Track absolute errors for word pairs
+
+    for (wrd1, wrd2), human_score in standard.items():
+        # Get embeddings
         emb1 = model.encode(wrd1, convert_to_tensor=True)
         emb2 = model.encode(wrd2, convert_to_tensor=True)
-        cos_sim = util.cos_sim(emb1, emb2).item()  # Cosine similarity
-        # Append both scores, ensures equal order
-        wordsim_scr_lst.append(scr)                 
+        cos_sim = util.cos_sim(emb1, emb2).item()
+        
+        # Store scores
+        wordsim_scr_lst.append(human_score)
         cos_sim_lst.append(cos_sim)
 
-    spearman, _ = spearmanr(cos_sim_lst, wordsim_scr_lst)    
+        # Track error
+        error = abs(cos_sim - human_score)
+        error_list.append(((wrd1, wrd2), human_score, cos_sim, error))
+
+    # Compute Spearman correlation
+    spearman, _ = spearmanr(cos_sim_lst, wordsim_scr_lst)
+
+    # Sort by highest error (worst predictions)
+    error_list.sort(key=lambda x: x[3], reverse=True)
+    hardest_pairs = error_list[:top_k]
+
+    print(f"Spearman Correlation: {spearman:.4f}\n")
+    print(f"Top {top_k} hardest word pairs (largest discrepancy):")
+    for (w1, w2), human, model_sim, err in hardest_pairs:
+        print(f"  ({w1}, {w2}) - Human: {human:.2f}, Model: {model_sim:.2f}, Error: {err:.2f}")
+
     return spearman
 
 def test_essemble_method(model1, model2, standard):
@@ -161,21 +179,20 @@ def eval_fine_tuned(modesl):
 
 # Load list of relatedness golden standards
 relatedness_standards = {
-    "Wordsim-353-Relatedness"   : load_standard("data/relatedness/WordSim353-REL/full.txt"),
-    "EN-MTurk-287"              : load_standard("data/relatedness/EN-MTurk-287/full.txt"),
-    "EN-MTurk-771"              : load_standard("data/relatedness/EN-MTurk-771/full.txt"),
-    "MEN"                       : load_standard("data/relatedness/MEN/full.txt")
+    #"Wordsim-353-Relatedness"   : load_standard("data/relatedness/WordSim353-REL/full.txt"),
+    #"EN-MTurk-287"              : load_standard("data/relatedness/EN-MTurk-287/full.txt"),
+    #"EN-MTurk-771"              : load_standard("data/relatedness/EN-MTurk-771/full.txt"),
+    #"MEN"                       : load_standard("data/relatedness/MEN/test.txt")
 }
 # Load list of similarity golden standards
 similarity_standards = {
-    "Wordsim-363-Similarity"    : load_standard("data/similarity/WordSim353-SIM/full.txt"),
-    "SimLex-999"                : load_standard("data/similarity/SimLex-999/full.txt"),
-    "SimVerb-3500(20%)"         : load_standard("dat                ½a/similarity/SimVerb-3500/test.txt")
+    #"Wordsim-363-Similarity"    : load_standard("data/similarity/WordSim353-SIM/full.txt"),
+    #"SimLex-999"                : load_standard("data/similarity/SimLex-999/full.txt"),
+    "SimVerb-3500(20%)"         : load_standard("data/similarity/SimVerb-3500/test.txt")
 }
 
-models = {
-        "SimVerb3500-RRL-t-T5"  : SentenceTransformer("data/models/SimVerb3500-rrl-t-T5")
-    }
+models = {"T5"      : SentenceTransformer("sentence-transformers/sentence-t5-large"),
+}
 
 eval_fine_tuned(models)
 

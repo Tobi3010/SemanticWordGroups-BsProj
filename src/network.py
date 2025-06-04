@@ -13,6 +13,7 @@ from sklearn.metrics import confusion_matrix
 from scipy.optimize import linear_sum_assignment
 import numpy as np
 import seaborn as sns
+import community as community_louvain
 
 
 # Makes the nodes for 
@@ -104,12 +105,6 @@ def get_representative_nodes(G, communities):
 
     return rep_nodes
 
-def spectral_communities(G, n):
-    A = nx.to_numpy_array(G)
-    sc = SpectralClustering(n_clusters=n, affinity='precomputed', assign_labels='kmeans')
-    labels = sc.fit_predict(A)
-    return {node: int(label) for node, label in zip(G.nodes(), labels)}
-
 def load_df_category_words(name):
     return pd.read_csv(f"data/networks/{name}/categories_words.csv")
 
@@ -117,23 +112,21 @@ def load_df_category_words(name):
 
 print("Starting...")
 
-categories = {"emotions-136.txt":0,"positive_words-247.txt":0, "negative_words-178.txt":0}
+categories = {"art-124.txt":0}
 df = make_word_category_df(categories, False)
 save_words_category_df(categories, df)
 print("Word categories made and saved")
-"""
+
 
 parts = []
 for category, n_words in categories.items():
     category_name = category.split("-")[0]
     parts.append(f"{category_name}{n_words}")
 data_name = "-".join(parts)
-"
-data_name = "animal0-sports0-colors0"
-model_name ="roberta"
-#model = SentenceTransformer("all-roberta-large-v1")
-#model_name ="MEN-cossim-t-MPNet"
-#model = SentenceTransformer("data/models/MEN-cossim-t-MPNet")
+
+
+model_name ="MEN-cossim-t-MPNet"
+model = SentenceTransformer("data/models/MEN-cossim-t-MPNet")
 
 
 
@@ -143,14 +136,13 @@ save_df_cossim(df, data_name, model_name)
 print("Word cosine similarity made and saved")
 
 df = load_df_cossim(data_name, model_name)
-G = make_graph_from_df(df, 0.15)
+G = make_graph_from_df(df, 0.10)
 nodes_degree = dict(G.degree)
-#communities = community_louvain.best_partition(G)
-communities = spectral_communities(G, 2)
+communities = community_louvain.best_partition(G)
 net = make_network(G, communities, nodes_degree)
-net.write_html(f"data/networks/{data_name}/{model_name}-spec2.html")
+net.write_html(f"data/networks/{data_name}/{model_name}.html")
 print("Network made and saved")
-"""
+
 
 
 
