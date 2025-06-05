@@ -3,6 +3,27 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
+
+
+def load_words_df(path):
+    return pd.read_csv(path)
+
+def make_graph_from_df(df, top_percent):
+    # Include only top perecent word pairs
+    df_sorted = df.sort_values(by="cos_sim", ascending=False)
+    top_n = int(len(df_sorted) * top_percent)
+    df_top = df_sorted.head(top_n)
+
+    G = nx.from_pandas_edgelist(
+        df_top, 
+        source = "word1",
+        target = "word2",
+        edge_attr = "cos_sim",
+        create_using = nx.Graph()
+    )
+
+    return G
+
 def graph_metrics(G):
     metrics = {}
 
@@ -27,24 +48,38 @@ def graph_metrics(G):
 
     return metrics
 
-def make_graph_from_df(df, top_percent):
-    # Include only top perecent word pairs
-    df_sorted = df.sort_values(by="cos_sim", ascending=False)
-    top_n = int(len(df_sorted) * top_percent)
-    df_top = df_sorted.head(top_n)
 
-    G = nx.from_pandas_edgelist(
-        df_top, 
-        source = "word1",
-        target = "word2",
-        edge_attr = "cos_sim",
-        create_using = nx.Graph()
-    )
+def main(metrics, graphs):
+    # Convert old metrics to pandas frame
+    metrics_df = pd.DataFrame.from_dict(metrics, orient="index")
+    metrics_df.reset_index(inplace=True)
+    metrics_df.rename(columns={"index": "model"}, inplace=True)
 
-    return G
+    # Get metrics for all model graphs
+    results = []
+    for model_name, G in graphs.items():
+        G_metrics = graph_metrics(G)
+        result = {
+            "model": model_name,
+            **G_metrics,
+        }
+        print(result)
+        results.append(result)
 
-def load_words_df(path):
-    return pd.read_csv(path)
+    G_metrics_df = pd.DataFrame(results)
+    # Merge data frame so all metrics for each model are on the row
+    merged_df = pd.merge(G_metrics_df , metrics_df, on="model")
+
+    # Compute pearson correlations
+    cor_matrix = merged_df.corr(numeric_only=True, method="pearson")
+    # Only correlations between old metrics and graph metrics
+    cor = cor_matrix.loc[ 
+        ["clust_coef", "avg_path_l", "modularity", "edge_w_variance"], 
+        ["similarity", "relatedness", "semcat_distinct", "semcat_similar"]
+    ]
+
+    print(cor.round(3))
+   
 
 # Models on previus metrics, see thesis paper
 metrics = {
@@ -63,7 +98,7 @@ metrics = {
 
 G_path = "data/networks/science/science"
 top = 0.15
-model_graphs = {
+graphs = {
     "Word2Vec"      : make_graph_from_df(load_words_df(G_path+"-Word2Vec.csv"), top),
     "GloVe"         : make_graph_from_df(load_words_df(G_path+"-GloVe.csv"), top),
     "FastText"      : make_graph_from_df(load_words_df(G_path+"-FastText.csv"), top),
@@ -74,40 +109,9 @@ model_graphs = {
     "T5-tuned"      : make_graph_from_df(load_words_df(G_path+"-T5-tuned.csv"), top)
 }
 
+pd.set_option("display.max_columns", None)
+main(metrics, graphs)
 
 
 
-results = []
 
-for model_name, G in model_graphs.items():
-    graph_metrics = graph_metrics(G)
-    result = {
-        'model': model_name,
-        **graph_metrics,
-    }
-    print(result)
-    results.append(result)
-
-df = pd.DataFrame(results)
-
-# 1. Convert prior_metrics to DataFrame
-prior_df = pd.DataFrame.from_dict(metrics, orient='index')
-prior_df.reset_index(inplace=True)
-prior_df.rename(columns={'index': 'model'}, inplace=True)
-
-# 2. Merge with graph metrics DataFrame
-merged_df = pd.merge(df, prior_df, on='model')
-
-# 3. Compute Pearson correlations
-correlation_matrix = merged_df.corr(numeric_only=True, method='pearson')
-
-# 4. Optional: Extract only correlation between prior and graph metrics
-graph_cols = ['clustering_coefficient', 'average_path_length', 'modularity', 'edge_weight_variance']
-prior_cols = ['similarity', 'relatedness', 'semcat_distinct', 'semcat_similar']
-
-correlations = correlation_matrix.loc[graph_cols, prior_cols]
-
-# 5. Show results
-pd.set_option('display.max_columns', None)
-print("=== Correlation Matrix (Graph Prior Metrics) ===")
-print(correlations.round(3))

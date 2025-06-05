@@ -1,11 +1,11 @@
 from sentence_transformers import SentenceTransformer
 from gensim.models.keyedvectors import KeyedVectors
+import gensim.downloader as gensim
 from scipy.optimize import linear_sum_assignment
 from sklearn.metrics import davies_bouldin_score, calinski_harabasz_score, adjusted_rand_score,  mutual_info_score
 from sklearn.metrics import confusion_matrix
 from sklearn.cluster import KMeans
 from sklearn.manifold import TSNE
-import gensim.downloader as api
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
